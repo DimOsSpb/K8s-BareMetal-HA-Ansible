@@ -1,0 +1,15 @@
+---
+- include_tasks: "setup-{{ ansible_os_family }}.yml"
+
+- name: restart keepalived
+  service: name=keepalived state=restarted
+  
+- name: restart HAproxy
+  service: name=haproxy state=restarted
+
+
+# - name: restart networking
+#   become: true
+#   service: 
+#     name: networking
+#     state: restarted

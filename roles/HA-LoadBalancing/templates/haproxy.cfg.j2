@@ -1,0 +1,22 @@
+frontend http_stats
+   bind *:8080
+   mode http
+   stats uri /haproxy?stats
+
+frontend kube_api_server
+    bind *:6443
+    mode tcp
+    option tcplog
+    timeout client  10800s
+    default_backend K8s_controlPlane
+
+backend K8s_controlPlane
+    option httpchk GET /healthz
+    http-check expect status 200
+    mode tcp
+    option ssl-hello-chk
+    balance     roundrobin
+    timeout server  10800s
+    {% for host in ansible_play_batch %}
+    server {{ hostvars[host].ansible_hostname }} {{ hostvars[host].ansible_default_ipv4.address }}:{{ k8s_apiserver_bind_port }} check
+    {% endfor %}

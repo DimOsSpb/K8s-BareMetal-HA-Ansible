@@ -1,0 +1,28 @@
+---
+# HA Load Balancing Host role tasks for Debian family
+
+- name: Install packages 
+  package: 
+    name:
+      - keepalived
+      - haproxy
+    state: latest
+
+
+- name: Pushing keepalived.conf
+  template: 
+    src: keepalived.conf.j2
+    dest: /etc/keepalived/keepalived.conf
+
+- name: Pushing check_apiserver.sh
+  template: 
+    src: check_apiserver.sh.j2
+    dest: /etc/keepalived/check_apiserver.sh
+    mode: u=rwx,g=rx,o=r
+
+- name: Pushing haproxy.cfg
+  template: 
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+
+ 

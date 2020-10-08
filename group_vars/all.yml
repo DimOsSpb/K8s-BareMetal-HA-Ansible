@@ -1,0 +1,17 @@
+---
+k8s_version: '1.19'
+
+k8s_net: '10.10.4'
+k8s_pod_net_: '10.10.5'
+k8s_pod_network:
+  # Flannel CNI.
+  cni: 'flannel'
+  cidr: "{{ k8s_pod_net }}.0/16"
+  # Calico CNI.
+  # cni: 'calico'
+  # cidr: '192.168.0.0/16'
+
+
+k8s_apiserver_vip: "{{ k8s_net }}.100"
+k8s_apiserver_bind_port: 6444
+k8s_load_balanser_port: 6443

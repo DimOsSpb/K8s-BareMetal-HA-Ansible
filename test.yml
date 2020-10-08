@@ -1,0 +1,11 @@
+---
+- hosts: adm 
+  order: sorted
+  become: true
+#   vars:
+#     current: "{{ ansible_play_batch | reject('search', inventory_hostname) | list }}"
+#   tasks:
+#      - debug:
+#         msg: "result: {{ hostvars[inventory_hostname].ansible_default_ipv4.address }}"
+  roles:
+    - K8sHost

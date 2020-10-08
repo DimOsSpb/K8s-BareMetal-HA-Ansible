@@ -1,0 +1,35 @@
+global_defs {
+    router_id {{ ka_router_id }}
+    enable_script_security
+    script_user root
+}
+vrrp_script check_apiserver {
+  script "/etc/keepalived/check_apiserver.sh"
+  interval 3
+  weight -2
+  fall 10
+  rise 2
+}
+
+vrrp_instance KA {
+    state {{ vrrp_instance_state }}
+    interface {{ vrrp_instance_interface }}
+    virtual_router_id {{ vrrp_router_id }}
+    priority {{ vrrp_instance_priority }}
+    authentication {
+        auth_type PASS
+        auth_pass {{ vrrp_authentication }}
+    }
+    virtual_ipaddress {
+        {{ vrrp_virtual_ipaddress }}
+    }
+    mcast_src_ip {{ ansible_default_ipv4.address }}
+    unicast_peer {
+    {% for host in other_hosts %}
+    {{ hostvars[host].ansible_default_ipv4.address }}
+    {% endfor %}
+}
+    track_script {
+        check_apiserver
+    }
+}

@@ -1,0 +1,31 @@
+# k8s Host role tasks for Debian family
+---
+# ???
+# - name: Hack to resolve Problem with MergeList Issue
+#   shell: 'find /var/lib/apt/lists -maxdepth 1 -type f -exec rm -v {} \;'
+
+- name: update apt cache directly
+  apt:
+    update_cache: yes 
+
+- name: Install basic list of packages 
+  package: 
+    name:
+      - apt-transport-https
+      - curl
+      - ca-certificates
+      - software-properties-common
+      - gnupg2
+    state: latest
+
+- name: Add the Google signing key
+  apt_key: url=https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state=present
+
+- name: Add the k8s APT repo
+  apt_repository: repo='deb https://apt.kubernetes.io/ kubernetes-xenial main'
+    state=present
+
+
+
+ 

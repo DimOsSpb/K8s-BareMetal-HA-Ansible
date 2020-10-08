@@ -1,0 +1,10 @@
+---
+current_index: "{{ ansible_play_batch.index(inventory_hostname) }}"
+other_hosts: "{{ ansible_play_batch | reject('search', inventory_hostname) | list }}"
+ka_router_id: "K8S-KA{{ current_index }}"
+vrrp_instance_state: "{{ 'MASTER' if current_index == 1 else 'BACKUP' }}"
+vrrp_instance_interface: "{{ ansible_default_ipv4.interface }}"
+vrrp_instance_priority: "{{ 100 - (current_index | int * 10) }}"
+vrrp_router_id: '51'
+vrrp_authentication: '12345678'
+vrrp_virtual_ipaddress: "{{ k8s_apiserver_vip }}/24"

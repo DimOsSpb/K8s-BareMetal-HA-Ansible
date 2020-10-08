@@ -1,0 +1,76 @@
+---
+
+# In latest versions k8s main CRI runtime is containerd.
+# - name: Install Docker packages
+#   package:
+#     name: ['docker-ce','docker-ce-cli','containerd.io']
+#     state: latest
+
+# Containerd 
+# Follow (https://kubernetes.io/docs/setup/production-environment/container-runtimes/) in Containerd case:
+
+- name: Add Docker GPG key
+  apt_key: url=https://download.docker.com/linux/ubuntu/gpg
+    state=present
+
+- name: Add Docker APT repository
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/{{ansible_distribution|lower}} {{ansible_distribution_release}} stable
+      state=present
+
+# Containerd Prerequisites:
+
+- name: Let iptables see bridged traffic.
+  sysctl:
+    sysctl_file: /etc/sysctl.d/99-kubernetes-cri.conf
+    name: "{{ item }}"
+    value: '1'
+    state: present
+  loop:
+    - net.bridge.bridge-nf-call-iptables
+    - net.ipv4.ip_forward
+    - net.bridge.bridge-nf-call-ip6tables
+
+- name: Containerd Prerequisites
+  shell:
+    cmd: |  
+      cat > /etc/modules-load.d/containerd.conf <<EOF
+      overlay
+      br_netfilter
+      EOF
+      modprobe overlay
+      modprobe br_netfilter
+      sysctl --system
+
+- name: update apt cache directly
+  apt:
+    update_cache: yes      
+
+- name: Install Containerd
+  package:
+    name: containerd.io
+    state: latest
+
+# Configure containerd:
+
+- name: Check containerd conf dir
+  file:
+    path: /etc/containerd
+    state: directory
+
+- name: Make config
+  shell:
+    cmd: |
+      containerd config default > /etc/containerd/config.toml  
+
+- name: Set systemd_cgroup = true to use the systemd cgroup driver 
+# ini_file module did incorrect parse spaces at the beginning of a line... am use replase module
+  replace:
+    dest: /etc/containerd/config.toml
+    regexp: '^(.*systemd_cgroup).*$'
+    replace: '\1 = true'
+
+- name: Restart service containerd
+  service:
+    name: containerd
+    state: restarted
