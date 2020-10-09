@@ -1,4 +1,11 @@
 ---
+k8s_timezone: Europe/Moscow
+k8s_timepool:
+ - 'server 0.ru.pool.ntp.org'
+ - 'server 1.ru.pool.ntp.org'
+ - 'server 2.ru.pool.ntp.org'
+ - 'server 3.ru.pool.ntp.org'
+
 k8s_version: '1.19'
 
 k8s_net: '10.10.4'

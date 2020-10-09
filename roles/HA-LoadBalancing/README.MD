@@ -17,3 +17,7 @@ In ansible playbook:
     sudo systemctl stop keepalived
     sudo keepalived -f /etc/keepalived/keepalived.conf --dont-fork --log-console
 
+### Проверка HAProxy
+
+    http://10.10.4.100:8080/haproxy?stats#kube_api_server
+

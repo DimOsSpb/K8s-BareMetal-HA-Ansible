@@ -1,0 +1,31 @@
+---
+-  name: Install command line admin utils 
+   package:
+      name:
+      - kubectl
+      state: present
+
+-  name: Check if Kubernetes has already been initialized.
+   stat:
+      path: "{{ k8s_admin_config_file }}"
+   delegate_to: "{{ k8s_master }}" 
+   register: kubernetes_init_info
+
+-  name: Copy admin_config_file on ansible host
+   fetch: 
+      src: "{{ k8s_admin_config_file }}"
+      dest: "/home/{{ lookup('env','USER') }}/.kube/config"
+      flat: yes 
+   when: kubernetes_init_info.stat.exists
+   delegate_to: "{{ k8s_master }}"
+   register: config_copy_present
+
+-  name: Copy admin_config_file to groupe.adm hosts
+   copy: 
+      src: "/home/{{ lookup('env','USER') }}/.kube/config"
+      dest: "/home/{{ lookup('env','USER') }}/.kube/config"
+   when: inventory_hostname in groups.adm and (not config_copy_present.failed)
+   register: config_copy_present_2
+
+#- debug: msg="{{ inventory_hostname in groups.adm }}"
+#- debug: msg="{{ kubernetes_init_info }}"

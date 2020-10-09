@@ -2,6 +2,7 @@
 - include_tasks: "setup-{{ ansible_os_family }}.yml"
 - include_tasks: "CRI-Runtime-{{ ansible_os_family }}.yml"
 
+
 - name: Install k8s master packages
   package:
     name:

@@ -1,5 +1,5 @@
 ---
-- hosts: adm 
+- hosts: adm
   order: sorted
   become: true
 #   vars:
@@ -7,5 +7,11 @@
 #   tasks:
 #      - debug:
 #         msg: "result: {{ hostvars[inventory_hostname].ansible_default_ipv4.address }}"
+#
+  # tasks:
+  #  - name: Copy
+  #    fetch: 
+  #     src: /etc/kubernetes/admin.conf 
+  #     dest: /home/sup/.kube/config 
   roles:
-    - K8sHost
+    - K8sAdminHost

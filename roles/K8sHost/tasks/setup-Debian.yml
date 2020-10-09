@@ -8,6 +8,27 @@
   apt:
     update_cache: yes 
 
+- name: Install NTP
+  package:
+    name: ntp
+    state: latest
+
+- name: Set timezone
+  timezone:
+    name: "{{ k8s_timezone }}"
+
+- name: Pushing /etc/ntp.conf
+  template: 
+    src: ntp.conf.j2
+    dest: /etc/ntp.conf
+    mode: u=rwx,g=rx,o=r
+
+- name: Ensure NTP is enabled end restarted
+  service:
+    name: ntp
+    state: restarted
+    enabled: true    
+
 - name: Install basic list of packages 
   package: 
     name:
