@@ -2,7 +2,7 @@
 -  name: Install command line admin utils 
    package:
       name:
-      - kubectl
+      - kubectl={{ k8s_version }}
       state: present
 
 -  name: Check if Kubernetes has already been initialized.
@@ -24,7 +24,8 @@
    copy: 
       src: "/home/{{ lookup('env','USER') }}/.kube/config"
       dest: "/home/{{ lookup('env','USER') }}/.kube/config"
-   when: inventory_hostname in groups.adm and (not config_copy_present.failed)
+   when: not config_copy_present.failed 
+         #and inventory_hostname in groups.adm
    register: config_copy_present_2
 
 #- debug: msg="{{ inventory_hostname in groups.adm }}"

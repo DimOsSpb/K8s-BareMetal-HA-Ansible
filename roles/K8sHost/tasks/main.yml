@@ -6,7 +6,13 @@
 - name: Install k8s master packages
   package:
     name:
-    - kubelet
-    - kubeadm
-#         kubectl - optional - https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/high-availability/
-#          - kubectl
+    - kubelet={{ k8s_version }}
+    - kubeadm={{ k8s_version }}
+#     kubectl - optional - https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/high-availability/
+    state: present
+    
+- name: Pushing /etc/crictl.yaml
+  template: 
+    src: crictl.yaml
+    dest: /etc/crictl.yaml
+    mode: u=rw,g=r,o=r

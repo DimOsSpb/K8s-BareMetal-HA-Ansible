@@ -1,5 +1,5 @@
 ---
-- hosts: adm
+- hosts: m1
   order: sorted
   become: true
 #   vars:
@@ -14,4 +14,4 @@
   #     src: /etc/kubernetes/admin.conf 
   #     dest: /home/sup/.kube/config 
   roles:
-    - K8sAdminHost
+    - K8sHost

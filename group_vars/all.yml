@@ -6,7 +6,8 @@ k8s_timepool:
  - 'server 2.ru.pool.ntp.org'
  - 'server 3.ru.pool.ntp.org'
 
-k8s_version: '1.19'
+k8s_version: '1.19*'
+containerd_version: '1.3*'     # In k8sHost Roles CRI-Runtime sub task the setup procedure is very version dependent
 
 k8s_net: '10.10.4'
 k8s_pod_net_: '10.10.5'

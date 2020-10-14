@@ -49,8 +49,7 @@
 - name: Install Containerd
   package:
     name: containerd.io
-    state: latest
-
+    state: present
 # Configure containerd:
 
 - name: Check containerd conf dir
@@ -58,10 +57,17 @@
     path: /etc/containerd
     state: directory
 
-- name: Make config
+- name: BackUp containerd old config and Make new default config
   shell:
     cmd: |
+      mv /etc/containerd/config.toml /etc/containerd/config.bak
       containerd config default > /etc/containerd/config.toml  
+
+- name: Delete version = 2 line
+  lineinfile:
+    dest: /etc/containerd/config.toml
+    state: absent 
+    regexp: '^(version = 2).*$' 
 
 - name: Set systemd_cgroup = true to use the systemd cgroup driver 
 # ini_file module did incorrect parse spaces at the beginning of a line... am use replase module

@@ -8,6 +8,8 @@
   apt:
     update_cache: yes 
 
+# Date & Time on all k8s mast be the same
+
 - name: Install NTP
   package:
     name: ntp
@@ -21,7 +23,7 @@
   template: 
     src: ntp.conf.j2
     dest: /etc/ntp.conf
-    mode: u=rwx,g=rx,o=r
+    mode: u=rwx,g=rx,o=r 
 
 - name: Ensure NTP is enabled end restarted
   service:
