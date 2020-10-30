@@ -1,0 +1,9 @@
+-  name: Check if K8s cluster has already been initialized.
+   stat:
+      path: "{{ k8s_admin_config_file }}"
+   delegate_to: "{{ k8s_first_master }}" 
+   register: cluster_config_file
+-  name: "K8s cluster - {{ '' if cluster_config_file.stat.exists else 'not ' }} initialized"
+   set_fact:
+      k8s_initialized: "{{ cluster_config_file.stat.exists }}"
+   no_log: true

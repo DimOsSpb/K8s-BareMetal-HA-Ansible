@@ -1,17 +1,17 @@
 ---
-- hosts: m1
+- hosts: adm, m1
   order: sorted
   become: true
 #   vars:
 #     current: "{{ ansible_play_batch | reject('search', inventory_hostname) | list }}"
-#   tasks:
-#      - debug:
-#         msg: "result: {{ hostvars[inventory_hostname].ansible_default_ipv4.address }}"
+  tasks:
+    - debug:
+        msg: "result: {{ k8s_cluster.first_master }} - {{ k8s_cluster.first_master_ip }}"
 #
   # tasks:
   #  - name: Copy
   #    fetch: 
   #     src: /etc/kubernetes/admin.conf 
   #     dest: /home/sup/.kube/config 
-  roles:
-    - K8sHost
+  # roles:
+  #   - K8sAdminHost

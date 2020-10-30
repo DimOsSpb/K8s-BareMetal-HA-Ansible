@@ -1,0 +1,24 @@
+apiVersion: kubeadm.k8s.io/v1beta2
+kind: InitConfiguration
+nodeRegistration:
+  kubeletExtraArgs:
+    runtime-cgroups: /system.slice/containerd.service
+    kubelet-cgroups: /systemd/system.slice
+    container-runtime: remote  
+    container-runtime-endpoint: unix:///run/containerd/containerd.sock
+    cgroup-driver: systemd 
+    v: "4"   
+  criSocket: /var/run/containerd/containerd.sock
+localAPIEndpoint:
+  bindPort: {{ k8s_apiserver_bind_port }}
+---
+apiVersion: kubeadm.k8s.io/v1beta2
+kind: ClusterConfiguration
+networking:
+  serviceSubnet: "{{ k8s_serviceSubnet }}"
+  podSubnet: "{{ k8s_pod_network.cidr }}"
+controlPlaneEndpoint: "{{ k8s_control_plane_endpoint_vip }}:{{ k8s_control_plane_endpoint_port }}"
+---
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+cgroupDriver: systemd

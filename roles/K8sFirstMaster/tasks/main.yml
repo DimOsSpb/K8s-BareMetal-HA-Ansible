@@ -1,0 +1,101 @@
+---
+-  name: Check cluster init configuration dir
+   file:
+      path: /var/lib/kubelet
+      state: directory
+
+-  name: Pushing cluster init configuration on first master
+   template: 
+      src: config.yaml.j2
+      dest: /etc/kubernetes/config.yaml
+
+-  name: Init new cluster...
+   command: kubeadm init --config /etc/kubernetes/config.yaml --upload-certs   
+   # shell: 
+   #    cmd: >
+   #       kubeadm init
+   #       --control-plane-endpoint {{ k8s_control_plane_endpoint_vip }}:{{ k8s_control_plane_endpoint_port }}
+   #       --apiserver-bind-port {{ k8s_apiserver_bind_port }}
+   #       --upload-certs
+   #       --cri-socket /run/containerd/containerd.sock
+   ##failed_when: result.rc != 0
+   async: 80 # max time in sec initialization of cluster
+   poll: 0
+   register: result
+
+-  name: 'Check Init done...'
+   async_status:
+      jid: "{{ result.ansible_job_id }}"
+   register: jp_result
+   until: jp_result.finished
+   retries: 8
+   delay: 10
+
+# - debug: var=jp_result
+
+- name: Wait for k8s apiserver
+  wait_for:
+    host: "{{ k8s_control_plane_endpoint_vip }}"
+    port: "{{ k8s_control_plane_endpoint_port }}"
+    timeout: 180
+
+- name: Store init output
+  action: copy content="{{ jp_result.stdout }}" dest="/etc/kubernetes/kubeadm-init.stdout"
+# -  name: Print the init output to screen.
+#    debug:
+#       msg: result.stdout
+#       verbosity: 2
+#    #when: not result.stat.exists
+
+# OK. First master ready -> config for kubectl work 
+
+- name: Ensure .kube directory exists.
+  file:
+    path: ~/.kube
+    state: directory
+    mode: 0755
+
+- name: Symlink the kubectl admin.conf to ~/.kube/conf.
+  file:
+    src: /etc/kubernetes/admin.conf
+    dest: ~/.kube/config
+    state: link
+    force: true
+    mode: 0644
+
+# Pods network:
+
+-  name: Configure Flannel networking
+   command: "{{ item }}"
+   with_items:
+      -  kubectl apply -f {{ k8s_flannel_manifest_file_rbac }}
+      -  kubectl apply -f {{ k8s_flannel_manifest_file }}
+   register: flannel_result
+   changed_when: "'created' in flannel_result.stdout"
+   when: k8s_pod_network.cni == 'flannel'
+
+-  name: Print the init output to screen.
+   debug:
+      var: flannel_result.stdout
+      verbosity: 2
+      #when: not result.stat.exists
+
+   # -  debug:
+   #       msg: "{{ result }}"
+#any_errors_fatal: true
+   # when: not k8s_cluster.initialized
+
+   # always:
+   # -  name: Cleanup if errors
+   #    block:
+   #       -  name: Reset init    
+   #          command: "kubeadm reset -f"
+   #       -  debug:
+   #             msg: "Cluster initialization failed on task: {{ ansible_failed_task }}, failed result: {{ ansible_failed_result }}"
+   #    when: result.rc != 0
+   #    #ansible_failed_task is defined 
+   #    # and
+   #    #       not k8s_cluster.initialized
+
+
+

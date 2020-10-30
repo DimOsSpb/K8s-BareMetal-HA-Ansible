@@ -6,10 +6,3 @@
   
 - name: restart HAproxy
   service: name=haproxy state=restarted
-
-
-# - name: restart networking
-#   become: true
-#   service: 
-#     name: networking
-#     state: restarted

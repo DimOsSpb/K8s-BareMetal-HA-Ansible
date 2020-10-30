@@ -1,3 +1,0 @@
----
-k8s_master: "{{ hostvars[groups['k8s-masters'][0]].ansible_host }}"
-k8s_admin_config_file: /etc/kubernetes/admin.conf

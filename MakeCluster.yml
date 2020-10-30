@@ -1,0 +1,42 @@
+---
+- hosts: all
+  order: sorted
+  become: true
+
+  pre_tasks:
+
+    - block:  #Check all conditions
+    
+        - name: Get k8s facts
+          include_tasks: tasks/get_k8s_facts.yml  #(result in k8s_ variable)
+
+        # - debug:
+        #     msg: "{{ k8s_initialized }}"          
+
+        - name: Stop if conditions not met
+          assert:
+            that:
+              - not k8s_initialized
+
+        - name: Ok
+          set_fact: 
+            passible: true
+
+      rescue:
+
+        - name: Conditions for make cluster is not met
+          set_fact: 
+            passible: false
+        
+        - meta: end_play
+
+      when: "inventory_hostname == k8s_first_master"
+
+
+  roles:
+    - { role: HA-LoadBalancing, when: "inventory_hostname in groups.masters" }
+    - { role: K8sFirstMaster, when: "not k8s_initialized and inventory_hostname == k8s_first_master" } 
+
+  # post_tasks:
+  #   - debug:  
+  #       msg: "Finished deployment. Current time is {{ansible_date_time.date}} {{ansible_date_time.time}} " 

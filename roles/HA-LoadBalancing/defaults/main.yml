@@ -7,4 +7,4 @@ vrrp_instance_interface: "{{ ansible_default_ipv4.interface }}"
 vrrp_instance_priority: "{{ 100 - (current_index | int * 10) }}"
 vrrp_router_id: '51'
 vrrp_authentication: '12345678'
-vrrp_virtual_ipaddress: "{{ k8s_apiserver_vip }}/24"
+vrrp_virtual_ipaddress: "{{ k8s_control_plane_endpoint_vip }}/24"

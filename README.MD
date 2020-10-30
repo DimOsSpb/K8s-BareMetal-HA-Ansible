@@ -8,8 +8,17 @@
     - [3.2.2. __CNI Calico__](#322-cni-calico)
     - [3.2.3. __CNI Cilium__](#323-cni-cilium)
   - [3.3. Build cluster](#33-build-cluster)
-    - [3.3.1. KubeAdm](#331-kubeadm)
+    - [Инициализация плоскости управления (первый мастер в кластере)](#инициализация-плоскости-управления-первый-мастер-в-кластере)
+    - [Using kubeadm init with a configuration file](#using-kubeadm-init-with-a-configuration-file)
   - [3.4. After first master node initialized (kubeadm init...)](#34-after-first-master-node-initialized-kubeadm-init)
+  - [Безопастность](#безопастность)
+    - [TLS](#tls)
+  - [ETCD](#etcd)
+    - [Диагностика](#диагностика)
+    - [Резервирование](#резервирование)
+  - [Dashboard](#dashboard)
+- [Реализуем сервисы в кластере](#реализуем-сервисы-в-кластере)
+  - [Диагностика, сбор статистики...](#диагностика-сбор-статистики)
 - [4. Links to information sources](#4-links-to-information-sources)
 
 ## 1. Цель проекта
@@ -24,12 +33,20 @@
   * 6 хостов подходящие к минимальным требованиям для кластера K8s. [см. Kubeadm's minimum requirements](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#before-you-begin).
   * Базовый дистрибутив хостов - Debian 10+
   * Установленый python (см. требования к Ansible)
-  * 
+  * С управляющего хоста, должен быть настроен доступ к целевым системам по ssh ключу (требование Ansible)
   
 ## 3. Особенности реализации
 
-  Для автоматизации, и переносимости все действия производятся через Ansible с использованием ролей:
-    
+  Хосты - это некое железо (barremetal on-premise) или виртуальные машины с установленной os, отвечающее минимальным необходимым требованиям для будущего проекта. Операционная система должна быть устанавлена практически автоматчески (pxe, preseed).    
+
+  Для автоматизации, и переносимости все действия производятся через Ansible с использованием [__индемпотентных__](https://ru.wikipedia.org/wiki/%D0%98%D0%B4%D0%B5%D0%BC%D0%BF%D0%BE%D1%82%D0%B5%D0%BD%D1%82%D0%BD%D0%BE%D1%81%D1%82%D1%8C) плейбуков и ролей.
+
+  Плейбуки:
+  
+  - __InitCluster__ - Основной плейбук, приводит кластер (создает, если его нет) к заданному состоянию.
+  
+  Роли в проекте:
+
    - [K8sHost](./roles/K8sHost/README.MD) 
    - [K8sAdminHost](./roles/K8sAdminHost/README.MD) 
    - [K8sHost](./roles/K8sHost/README.MD) 
@@ -82,9 +99,9 @@
     timeout: 10
     debug: false
   
-    @K8sM1:~$ sudo systemctl daemon-reload
-    @K8sM1:~$ sudo systemctl start containerd
-    @K8sM1:~$ sudo systemctl start kubelet
+    sudo systemctl daemon-reload
+    sudo systemctl start containerd
+    sudo systemctl start kubelet
 
   В итоге, вот пример вывода работающих контейнеров на узле плоскости управления, на инициализированным мастере k8s
   
@@ -135,9 +152,20 @@
   
 
 ### 3.3. Build cluster
-#### 3.3.1. KubeAdm
+> __[KubeAdm](https://kubernetes.io/docs/reference/setup-tools/kubeadm/)__
 
-    sudo kubeadm init --control-plane-endpoint 10.10.4.100:6443 --apiserver-bind-port 6444 --upload-certs --cri-socket /run/containerd/containerd.sock
+  Создание кластера разбито на этапы:
+  #### [Инициализация плоскости управления](https://kubernetes.io/docs/reference/setup-tools/kubeadm/kubeadm-init/) (первый мастер в кластере)
+
+      sudo kubeadm init
+      --control-plane-endpoint {{ k8s_control_plane_endpoint_vip }}:{{ k8s_control_plane_endpoint_port }}
+      --apiserver-bind-port {{ k8s_apiserver_bind_port }}
+      --upload-certs
+      --cri-socket /run/containerd/containerd.sock
+
+  #### [Using kubeadm init with a configuration file](https://kubernetes.io/docs/reference/setup-tools/kubeadm/kubeadm-init/#config-file)
+
+  > [Для получения дополнительной информации о полях и использовании конфигурации...](https://godoc.org/k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/v1beta2)
 
 ### 3.4. After first master node initialized (kubeadm init...) 
 
@@ -146,6 +174,16 @@
       mkdir -p $HOME/.kube
       sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
       sudo chown $(id -u):$(id -g) $HOME/.kube/config
+### Безопастность
+#### TLS
+  [K8s TLS bootstrapping](https://kubernetes.io/docs/reference/command-line-tools-reference/kubelet-tls-bootstrapping/)
+### ETCD 
+#### Диагностика
+#### Резервирование
+
+### Dashboard
+## Реализуем сервисы в кластере
+### Диагностика, сбор статистики...
 
 ## 4. Links to information sources
   * [K8s High Availability Considerations](https://github.com/kubernetes/kubeadm/blob/master/docs/ha-considerations.md#keepalived-and-haproxy)

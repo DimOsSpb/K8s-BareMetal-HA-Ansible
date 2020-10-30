@@ -3,14 +3,19 @@
 - include_tasks: "CRI-Runtime-{{ ansible_os_family }}.yml"
 
 
-- name: Install k8s master packages
+- name: Install k8s all nodes packages
   package:
     name:
     - kubelet={{ k8s_version }}
-    - kubeadm={{ k8s_version }}
-#     kubectl - optional - https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/high-availability/
     state: present
     
+- name: Install k8s master packages
+  package:
+    name:
+    - kubeadm={{ k8s_version }}
+    state: present
+  when: inventory_hostname in groups.masters
+
 - name: Pushing /etc/crictl.yaml
   template: 
     src: crictl.yaml
